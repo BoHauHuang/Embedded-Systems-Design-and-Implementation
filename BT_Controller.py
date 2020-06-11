@@ -1,14 +1,15 @@
 import serial
 import time
+import struct
 
 TTY = "/dev/ttyUSB0"
 BAUD = 115200
 
 bt = serial.Serial(port=TTY, baudrate=BAUD)
 
-class BT_Controller:
-    def __init__(self):
-        pass
+class RN42:
+    hid_kb_report_fmt = struct.Struct("B B B B B B B B")
+    hid_mouse_report_fmt = struct.Struct("B B B B")
 
     def cmd_protector(func):
         """Decorator to maintain state of bluetooth module when exception happended
@@ -18,7 +19,7 @@ class BT_Controller:
                 func(*args, **kwargs)
             except:
                 print("Leaving command mode...")
-                while not BT_Controller.send_check("---\r\n", "END\r\n"):
+                while not RN42.send_check("---\r\n", "END\r\n"):
                     print("Try again...")
                 raise
         return wrapper
@@ -76,6 +77,50 @@ class BT_Controller:
             while not self.send_check(cmd, expect):
                 print("Try again...")
 
+class BT_Controller(RN42):
+    def report_sender(self):
+        action = [
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x54", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+        ]
+        release = [
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+            int("0x00", 16),
+        ]
+        action_serial = b"\xfd\x09\x01" + self.hid_kb_report_fmt.pack(*action)
+        release_serial = b"\xfd\x09\x01" + self.hid_kb_report_fmt.pack(*release)
+
+        # action = [
+        #     int("0x00", 16),
+        #     int("0x00", 16),
+        #     int("0x00", 16),
+        #     int("0x20", 16),
+        # ]
+        # release = [
+        #     int("0x00", 16),
+        #     int("0x00", 16),
+        #     int("0x00", 16),
+        #     int("0x00", 16),
+        # ]
+        # action_serial = b"\xfd\x05\x02" + self.hid_mouse_report_fmt.pack(*action)
+        # release_serial = b"\xfd\x05\x02" + self.hid_mouse_report_fmt.pack(*release)
+        # print(action_serial)
+
+        bt.write(action_serial)
+        bt.write(release_serial)
+
     def shell(self):
         while True:
             cmd = input("# ")
@@ -83,6 +128,8 @@ class BT_Controller:
                 self.cmd_mode()
             elif cmd == "reset":
                 self.reset_module()
+            else:
+                self.report_sender()
 
 def main():
     ctrler = BT_Controller()
