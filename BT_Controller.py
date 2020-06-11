@@ -7,6 +7,7 @@ BAUD = 115200
 
 bt = serial.Serial(port=TTY, baudrate=BAUD)
 
+
 class RN42:
     hid_kb_report_fmt = struct.Struct("B B B B B B B B")
     hid_mouse_report_fmt = struct.Struct("B B B B")
@@ -14,6 +15,7 @@ class RN42:
     def cmd_protector(func):
         """Decorator to maintain state of bluetooth module when exception happended
         """
+
         def wrapper(*args, **kwargs):
             try:
                 func(*args, **kwargs)
@@ -22,6 +24,7 @@ class RN42:
                 while not RN42.send_check("---\r\n", "END\r\n"):
                     print("Try again...")
                 raise
+
         return wrapper
 
     @staticmethod
@@ -63,7 +66,7 @@ class RN42:
 
         cmd_pipeline = (
             ("SF,1\r\n", "AOK\r\n", "Restore factory settings"),
-            ("SH,0230\r\n", "AOK\r\n", "Set descriptor type to Keyboard and Mouse combo"),
+            ("SH,0230\r\n", "AOK\r\n", "Set descriptor type to combo mode"),
             ("SU,115K\r\n", "AOK\r\n", "Set UART baud rate to 115200"),
             ("S~,6\r\n", "AOK\r\n", "Set HID profile"),
             ("SN,bt-keyboard-adapter\r\n", "AOK\r\n", "Set module name"),
@@ -76,6 +79,7 @@ class RN42:
             print(i[2])
             while not self.send_check(cmd, expect):
                 print("Try again...")
+
 
 class BT_Controller(RN42):
     def report_sender(self):
@@ -130,6 +134,7 @@ class BT_Controller(RN42):
                 self.reset_module()
             else:
                 self.report_sender()
+
 
 def main():
     ctrler = BT_Controller()
