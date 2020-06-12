@@ -1,11 +1,11 @@
-import time
-from bt_keyboard_adapter.KB_listener import KB_Listener
+from bt_keyboard_adapter_pi.KB_listener import KB_Listener
+from bt_keyboard_adapter_pi.RN42 import RN42
 
 
 def main():
-    listener = KB_Listener()
-    while True:
-        time.sleep(1)
+    rn42 = RN42("/dev/ttyUSB0", 115200)
+    listener = KB_Listener(bt_module=rn42)
+    listener.listen()
 
 
 if __name__ == "__main__":

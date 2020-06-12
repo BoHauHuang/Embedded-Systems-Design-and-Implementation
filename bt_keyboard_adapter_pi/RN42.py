@@ -2,11 +2,6 @@ import serial
 import time
 import struct
 
-TTY = "/dev/ttyUSB0"
-BAUD = 115200
-
-bt = serial.Serial(port=TTY, baudrate=BAUD)
-
 
 class RN42:
     hid_kb_report_header = b"\xfd\x09\x01"
@@ -14,35 +9,36 @@ class RN42:
     hid_kb_report_fmt = struct.Struct("B B B B B B B B")
     hid_mouse_report_fmt = struct.Struct("B B B B")
 
+    def __init__(self, port, baudrate):
+        self.bt = serial.Serial(port=port, baudrate=baudrate)
+
     def cmd_protector(func):
         """Decorator to maintain state of bluetooth module when exception happended
         """
 
-        def wrapper(*args, **kwargs):
+        def wrapper(self, *args, **kwargs):
             try:
-                func(*args, **kwargs)
+                func(self, *args, **kwargs)
             except:
                 print("Leaving command mode...")
-                while not RN42.send_check("---\r\n", "END\r\n"):
+                while not self.send_check("---\r\n", "END\r\n"):
                     print("Try again...")
                 raise
 
         return wrapper
 
-    @staticmethod
-    def send_check(send: str, expect: str) -> bool:
-        bt.write(send.encode())
+    def send_check(self, send: str, expect: str) -> bool:
+        self.bt.write(send.encode())
         time.sleep(0.5)
-        recv = bt.read(bt.inWaiting())
+        recv = self.bt.read(self.bt.inWaiting())
         if recv != expect.encode():
             return False
         return True
 
-    @staticmethod
-    def send_print(send: str) -> None:
-        bt.write(send.encode())
+    def send_print(self, send: str) -> None:
+        self.bt.write(send.encode())
         time.sleep(0.5)
-        recv = bt.read(bt.inWaiting())
+        recv = self.bt.read(self.bt.inWaiting())
         print(recv.decode())
 
     @cmd_protector
@@ -85,67 +81,19 @@ class RN42:
     def send_report(self, modifier=0x00, code=((0x00,) * 6)):
         report_data = [modifier, 0x00, *code]
         report = self.hid_kb_report_header + self.hid_kb_report_fmt.pack(*report_data)
-        bt.write(report)
-
-
-class BT_Controller(RN42):
-    def report_sender(self):
-        action = [
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x54", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-        ]
-        release = [
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-            int("0x00", 16),
-        ]
-        action_serial = b"\xfd\x09\x01" + self.hid_kb_report_fmt.pack(*action)
-        release_serial = b"\xfd\x09\x01" + self.hid_kb_report_fmt.pack(*release)
-
-        # action = [
-        #     int("0x00", 16),
-        #     int("0x00", 16),
-        #     int("0x00", 16),
-        #     int("0x20", 16),
-        # ]
-        # release = [
-        #     int("0x00", 16),
-        #     int("0x00", 16),
-        #     int("0x00", 16),
-        #     int("0x00", 16),
-        # ]
-        # action_serial = b"\xfd\x05\x02" + self.hid_mouse_report_fmt.pack(*action)
-        # release_serial = b"\xfd\x05\x02" + self.hid_mouse_report_fmt.pack(*release)
-        # print(action_serial)
-
-        bt.write(action_serial)
-        bt.write(release_serial)
-
-    def shell(self):
-        while True:
-            cmd = input("# ")
-            if cmd == "cmd":
-                self.cmd_mode()
-            elif cmd == "reset":
-                self.reset_module()
-            else:
-                self.report_sender()
+        self.bt.write(report)
 
 
 def main():
-    ctrler = BT_Controller()
-    ctrler.shell()
+    rn42 = RN42("/dev/ttyUSB0", 115200)
+    while True:
+        cmd = input("# ")
+        if cmd == "cmd":
+            rn42.cmd_mode()
+        elif cmd == "reset":
+            rn42.reset_module()
+        else:
+            pass
 
 
 if __name__ == "__main__":
