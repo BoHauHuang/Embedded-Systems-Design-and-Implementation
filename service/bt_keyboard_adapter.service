@@ -1,0 +1,9 @@
+[Unit]
+Description=bt_keyboard_adapter
+
+[Service]
+ExecStart=/usr/local/bin/bt_keyboard_adapter.py /dev/ttyAMA0
+Restart=always
+
+[Install]
+WantedBy=default.target

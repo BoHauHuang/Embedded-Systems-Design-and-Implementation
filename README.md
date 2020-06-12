@@ -1,5 +1,27 @@
 # Embedded-Systems-Design-and-Implementation
 
+## Installation
+
+Dependency:
+
+* xtrlock
+* pyserial
+* keyboard
+
+```
+$ sudo bash ./install.sh
+$ sudo pip install .
+```
+
+Enable service:
+
+```
+$ sudo systemctl enable bt_keyboard_adapter_pi
+$ systemctl enable xtrlock --user
+```
+
+## Developing
+
 virtualenv:
 
 ```
