@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "esdi-final"
+name = "bt_keyboard_adapter_pi"
 version = "0.1.0"
 description = ""
 authors = ["kaiiiz <at881005@gmail.com>"]
+packages = [
+    { include = "bt_keyboard_adapter_pi" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"

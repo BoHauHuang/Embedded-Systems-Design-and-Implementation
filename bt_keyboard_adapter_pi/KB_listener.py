@@ -1,8 +1,9 @@
 import keyboard
 import time
 import pprint
-from BT_Controller import RN42
-from Constant import SCAN_CODES_HID_USAGEID_MAPPING, MODIFIER
+
+from .BT_Controller import RN42
+from . import SCAN_CODES_HID_USAGEID_MAPPING, MODIFIER
 
 
 class KB_Listener:
