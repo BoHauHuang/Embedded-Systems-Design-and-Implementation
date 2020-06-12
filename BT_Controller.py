@@ -9,6 +9,8 @@ bt = serial.Serial(port=TTY, baudrate=BAUD)
 
 
 class RN42:
+    hid_kb_report_header = b"\xfd\x09\x01"
+    hid_mouse_report_header = b"\xfd\x05\x02"
     hid_kb_report_fmt = struct.Struct("B B B B B B B B")
     hid_mouse_report_fmt = struct.Struct("B B B B")
 
@@ -79,6 +81,11 @@ class RN42:
             print(i[2])
             while not self.send_check(cmd, expect):
                 print("Try again...")
+
+    def send_report(self, modifier=0x00, code=((0x00,) * 6)):
+        report_data = [modifier, 0x00, *code]
+        report = self.hid_kb_report_header + self.hid_kb_report_fmt.pack(*report_data)
+        bt.write(report)
 
 
 class BT_Controller(RN42):
