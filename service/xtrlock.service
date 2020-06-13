@@ -1,0 +1,9 @@
+[Unit]
+Description=xtrlock
+
+[Service]
+ExecStart=/usr/bin/xtrlock
+Restart=always
+
+[Install]
+WantedBy=default.target
