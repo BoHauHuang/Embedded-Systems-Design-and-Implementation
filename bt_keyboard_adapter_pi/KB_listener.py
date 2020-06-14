@@ -4,7 +4,6 @@ import pprint
 
 from . import SCAN_CODES_HID_USAGEID_MAPPING, MODIFIER, NAME_MAPPING_TO_SCAN_CODES
 
-
 class KB_Listener:
     def __init__(self, bt_module):
         self.modifier = 0x00
@@ -19,29 +18,34 @@ class KB_Listener:
         self.bt.send_report(
             modifier=self.modifier, code=(self.key_hold, 0x00, 0x00, 0x00, 0x00, 0x00)
         )
-
-        # press F1 to record
+        #print(self.key_hold)
+        # press F1 start record
         if self.key_hold == 0x3A:
-            self.record_list = keyboard.record() # default: until 'esc' pressed
-
+            keyboard.start_recording()
+        # press esc stop record
+        if self.key_hold == 0x29:
+            self.record_list = keyboard.stop_recording()[2:]
+            #print(self.record_list)
         # press F2 to play the record
         if self.key_hold == 0x3B:
+            keyboard.play(self.record_list)
+            '''
+            replay_modifier = 0x00
             for event in self.record_list[:-1]:  # discard the esc down for quiting record
-                event = event.replace("KeyboardEvent", "")
+                k = event.scan_code
+                event = str(event).replace("KeyboardEvent", "")
                 [k, action] = event.split(" ")
-                k = k[1:]
                 action = action[:-1]
-                k_id = SCAN_CODES_HID_USAGEID_MAPPING[NAME_MAPPING_TO_SCAN_CODES[k]]
 
                 if action == "down":
                     if keyboard.is_modifier(key.scan_code):
-                        self.modifier |= MODIFIER[key.scan_code]
-                    self.bt.send_report(modifier=self.modifier, code=(k, 0x00, 0x00, 0x00, 0x00, 0x00))
+                        replay_modifier |= MODIFIER[key.scan_code]
+                    self.bt.send_report(modifier=replay_modifier, code=(k_id, 0x00, 0x00, 0x00, 0x00, 0x00))
                 else:
                     if keyboard.is_modifier(key.scan_code):
-                        self.modifier &= ~MODIFIER[key.scan_code]
-                    self.bt.send_report(self.modifier)
-
+                        replay_modifier &= ~MODIFIER[key.scan_code]
+                    self.bt.send_report(replay_modifier)
+            '''
     def key_release_handler(self, key):
         if keyboard.is_modifier(key.scan_code):
             self.modifier &= ~MODIFIER[key.scan_code]
