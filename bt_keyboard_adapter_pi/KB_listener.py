@@ -69,7 +69,7 @@ class KB_Listener:
                 # ESC: stop record
                 elif self.key_hold == 0x29:
                     try:
-                        self.macro_buf = keyboard.stop_recording()
+                        self.macro_buf = keyboard.stop_recording()[2:]
                     except ValueError:
                         pass
                     finally:
