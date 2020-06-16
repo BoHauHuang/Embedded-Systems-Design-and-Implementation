@@ -8,13 +8,19 @@ from . import SCAN_CODES_HID_USAGEID_MAPPING, MODIFIER
 
 
 class KB_Listener:
-    def __init__(self, bt_module):
+    def __init__(self,bt_module):
         self.modifier = 0x00
         self.key_hold = 0x00
         self.bt = bt_module
         self.recording = False
         self.replaying = False
         self.replay_buf = []
+
+        self.pre_key = 0x00
+        self.macro_key = 0x00
+        self.macro_playing = False
+        self.macro_recording = False
+        self.macro_buf = []
 
     def key_press_handler(self, key):
         if keyboard.is_modifier(key.scan_code):
@@ -23,6 +29,7 @@ class KB_Listener:
         self.bt.send_report(
             modifier=self.modifier, code=(self.key_hold, 0x00, 0x00, 0x00, 0x00, 0x00)
         )
+
         # replaying, press F2 again to stop
         if self.replaying:
             if self.key_hold == 0x3B:
@@ -45,6 +52,33 @@ class KB_Listener:
             elif self.key_hold == 0x3B:
                 self.replaying = True
 
+
+        # macro for any key
+        if not self.replaying or not self.recording:
+            if self.macro_playing:
+                if self.key_hold == self.macro_key:
+                    self.macro_playing = False
+            else:
+                # F6: assign macro key
+                if self.pre_key == 0x39 and self.macro_key != key_hold and not self.macro_playing and not self.macro_recording:
+                    self.macro_key = key_hold
+                # F7: start record
+                elif self.pre_key == 0x40 and not self.macro_playing and not self.macro_recording:
+                    keyboard.start_recording()
+                    self.macro_recording = True
+                # ESC: stop record
+                elif self.key_hold == 0x29:
+                    try:
+                        self.macro_buf = keyboard.stop_recording()
+                    except ValueError:
+                        pass
+                    finally:
+                        self.macro_recording = False
+                elif self.key_hold == self.macro_key:
+                    self.macro_playing = True
+                
+        self.pre_key = self.key_hold
+
     def key_release_handler(self, key):
         if keyboard.is_modifier(key.scan_code):
             self.modifier &= ~MODIFIER[key.scan_code]
@@ -64,6 +98,12 @@ class KB_Listener:
                 )
                 child.start()
                 child.join()
+            elif self.macro_playing and not self.replaying:
+                child = mp.Process(
+                    target=lambda e: keyboard.replay(e), args=(self.macro_buf,)
+                )
+                child.start()
+                child.join()
             else:
                 time.sleep(1)
 
@@ -71,7 +111,6 @@ class KB_Listener:
 def main():
     listener = KB_Listener()
     listener.listen()
-
 
 if __name__ == "__main__":
     main()
