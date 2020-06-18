@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "bt_keyboard_adapter_pi"
-version = "0.1.0"
+name = "bt_keyboard_adapter_rpi"
+version = "1.0.0"
 description = ""
 authors = ["kaiiiz <at881005@gmail.com>"]
 packages = [
-    { include = "bt_keyboard_adapter_pi" }
+    { include = "bt_keyboard_adapter_rpi" }
 ]
 
 [tool.poetry.dependencies]

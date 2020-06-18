@@ -5,9 +5,7 @@ import struct
 
 class RN42:
     hid_kb_report_header = b"\xfd\x09\x01"
-    hid_mouse_report_header = b"\xfd\x05\x02"
     hid_kb_report_fmt = struct.Struct("B B B B B B B B")
-    hid_mouse_report_fmt = struct.Struct("B B B B")
 
     def __init__(self, port, baudrate):
         self.bt = serial.Serial(port=port, baudrate=baudrate)

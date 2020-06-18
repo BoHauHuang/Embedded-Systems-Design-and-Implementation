@@ -35,7 +35,7 @@ class KB_Listener:
         else:
             if self.recording:
                 # macro: stop record
-                if self.key_hold == self.macro_key and self.recording:
+                if self.key_hold == self.macro_key:
                     try:
                         # the first 2 elements is F1 down, F1 up
                         self.replay_buf = keyboard.stop_recording()[2:]
@@ -44,10 +44,10 @@ class KB_Listener:
                     finally:
                         self.recording = False
             else:
-                # F1: assign macro key
+                # F6: assign macro key
                 if self.pre_key == 0x3f:
                     self.macro_key = self.key_hold
-                # F2: start record, prevent nested recording
+                # F7: start record, prevent nested recording
                 elif self.key_hold == 0x40:
                     keyboard.start_recording()
                     self.recording = True
@@ -77,6 +77,7 @@ class KB_Listener:
                 )
                 child.start()
                 child.join()
+                self.bt.send_report(self.modifier)
             else:
                 time.sleep(1)
 

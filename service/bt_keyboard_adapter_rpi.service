@@ -1,0 +1,9 @@
+[Unit]
+Description=bt_keyboard_adapter_rpi
+
+[Service]
+ExecStart=/usr/local/bin/bt_keyboard_adapter_rpi.py /dev/ttyAMA0
+Restart=always
+
+[Install]
+WantedBy=default.target

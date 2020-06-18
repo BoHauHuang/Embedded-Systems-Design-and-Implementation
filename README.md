@@ -16,7 +16,7 @@ $ sudo pip install .
 Enable service:
 
 ```
-$ sudo systemctl enable bt_keyboard_adapter
+$ sudo systemctl enable bt_keyboard_adapter_rpi
 $ systemctl enable xtrlock --user
 ```
 
