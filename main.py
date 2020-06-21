@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from bt_keyboard_adapter_pi.KB_listener import KB_Listener
-from bt_keyboard_adapter_pi.RN42 import RN42
+from bt_keyboard_adapter_rpi.KB_listener import KB_Listener
+from bt_keyboard_adapter_rpi.RN42 import RN42
 import argparse
 
 parser = argparse.ArgumentParser()
